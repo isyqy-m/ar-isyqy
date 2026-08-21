@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AR Isyqy</title>
+
+<!-- A-Frame -->
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+<!-- MindAR -->
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+<style>
+html, body {
+margin: 0;
+padding: 0;
+width: 100%;
+height: 100%;
+overflow: hidden;
+background: #000;
+}
+
+#startButton {
+position: fixed;
+z-index: 9999;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+
+padding: 16px 28px;
+border: none;
+border-radius: 12px;
+
+background: white;
+color: #222;
+
+font-size: 18px;
+font-weight: bold;
+
+cursor: pointer;
+}
+
+#info {
+position: fixed;
+z-index: 9998;
+left: 50%;
+bottom: 25px;
+transform: translateX(-50%);
+
+width: 90%;
+max-width: 400px;
+
+text-align: center;
+color: white;
+font-size: 15px;
+
+pointer-events: none;
+text-shadow: 0 1px 4px #000;
+}
+</style>
+</head>
+
+<body>
+
+<button id="startButton">
+📷 Mulai AR
+</button>
+
+<div id="info">
+Arahkan kamera ke halaman buku Isyqy
+</div>
+
+<a-scene
+mindar-image="imageTargetSrc: ./target.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no;"
+color-space="sRGB"
+renderer="colorManagement: true, physicallyCorrectLights"
+vr-mode-ui="enabled: false"
+device-orientation-permission-ui="enabled: false">
+
+<a-assets>
+
+<video
+id="isyqyVideo"
+src="./animasi-truk.mp4"
+preload="auto"
+loop
+muted
+playsinline
+crossorigin="anonymous">
+</video>
+
+</a-assets>
+
+<a-camera
+position="0 0 0"
+look-controls="enabled: false"
+cursor="rayOrigin: mouse">
+</a-camera>
+
+<!-- TARGET HALAMAN BUKU -->
+<a-entity mindar-image-target="targetIndex: 0">
+
+<a-video
+src="#isyqyVideo"
+position="0 0 0"
+width="1"
+height="0.75"
+rotation="0 0 0">
+</a-video>
+
+</a-entity>
+
+</a-scene>
+
+<script>
+
+const startButton = document.getElementById("startButton");
+const info = document.getElementById("info");
+
+const scene = document.querySelector("a-scene");
+const video = document.getElementById("isyqyVideo");
+
+startButton.addEventListener("click", async () => {
+
+startButton.style.display = "none";
+
+info.textContent = "Memulai kamera...";
+
+try {
+
+const arSystem = scene.systems["mindar-image-system"];
+
+await arSystem.start();
+
+info.textContent = "Arahkan kamera ke halaman buku Isyqy";
+
+} catch (error) {
+
+console.error(error);
+
+info.textContent =
+"Kamera tidak dapat digunakan. Pastikan izin kamera diberikan.";
+
+startButton.style.display = "block";
+}
+});
+
+const target = document.querySelector(
+"[mindar-image-target]"
+);
+
+target.addEventListener("targetFound", () => {
+
+console.log("Target ditemukan");
+
+info.textContent = "✨ Isyqy ditemukan!";
+
+video.currentTime = 0;
+
+video.play().catch(error => {
+console.log("Video belum dapat diputar:", error);
+});
+
+});
+
+target.addEventListener("targetLost", () => {
+
+console.log("Target hilang");
+
+info.textContent =
+"Arahkan kembali kamera ke halaman buku";
+
+video.pause();
+
+});
+
+</script>
+
+</body>
+</html>
