@@ -115,67 +115,61 @@ rotation="0 0 0">
 </a-scene>
 
 <script>
+  const startButton = document.getElementById("startButton");
+  const info = document.getElementById("info");
 
-const startButton = document.getElementById("startButton");
-const info = document.getElementById("info");
+  const scene = document.querySelector("a-scene");
+  const video = document.getElementById("isyqyVideo");
+  const target = document.querySelector("[mindar-image-target]");
 
-const scene = document.querySelector("a-scene");
-const video = document.getElementById("isyqyVideo");
+  // Saat tombol Mulai AR ditekan
+  startButton.addEventListener("click", async () => {
+    startButton.style.display = "none";
+    info.textContent = "Memulai kamera...";
 
-startButton.addEventListener("click", async () => {
+    try {
+      const arSystem = scene.systems["mindar-image-system"];
 
-startButton.style.display = "none";
+      if (!arSystem) {
+        throw new Error("MindAR belum siap.");
+      }
 
-info.textContent = "Memulai kamera...";
+      await arSystem.start();
 
-try {
+      info.textContent = "Arahkan kamera ke halaman buku Isyqy";
 
-const arSystem = scene.systems["mindar-image-system"];
+    } catch (error) {
+      console.error("Gagal memulai AR:", error);
 
-await arSystem.start();
+      info.textContent =
+        "Kamera gagal dibuka. Silakan muat ulang halaman dan izinkan kamera.";
 
-info.textContent = "Arahkan kamera ke halaman buku Isyqy";
+      startButton.style.display = "block";
+    }
+  });
 
-} catch (error) {
+  // Ketika gambar target ditemukan
+  target.addEventListener("targetFound", () => {
+    console.log("Target ditemukan");
 
-console.error(error);
+    info.textContent = "✨ Isyqy ditemukan!";
 
-info.textContent =
-"Kamera tidak dapat digunakan. Pastikan izin kamera diberikan.";
+    video.currentTime = 0;
 
-startButton.style.display = "block";
-}
-});
+    video.play().catch(error => {
+      console.log("Video belum dapat diputar:", error);
+    });
+  });
 
-const target = document.querySelector(
-"[mindar-image-target]"
-);
+  // Ketika gambar target hilang
+  target.addEventListener("targetLost", () => {
+    console.log("Target hilang");
 
-target.addEventListener("targetFound", () => {
+    info.textContent =
+      "Arahkan kembali kamera ke halaman buku";
 
-console.log("Target ditemukan");
-
-info.textContent = "✨ Isyqy ditemukan!";
-
-video.currentTime = 0;
-
-video.play().catch(error => {
-console.log("Video belum dapat diputar:", error);
-});
-
-});
-
-target.addEventListener("targetLost", () => {
-
-console.log("Target hilang");
-
-info.textContent =
-"Arahkan kembali kamera ke halaman buku";
-
-video.pause();
-
-});
-
+    video.pause();
+  });
 </script>
 
 </body>
